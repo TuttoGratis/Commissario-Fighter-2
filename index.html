@@ -3,13 +3,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Commissario Fighter</title>
   <style>
     body {
       margin: 0;
+      font-family: sans-serif;
+      background-color: black;
       overflow: hidden;
-      background-color: #000;
     }
     canvas {
       display: block;
@@ -17,36 +18,99 @@
       background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/San_Siro_2019.jpg/640px-San_Siro_2019.jpg') no-repeat center center;
       background-size: cover;
     }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+    }
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background-color: crimson;
+      color: white;
+    }
     .bubble {
       position: absolute;
       background: white;
       padding: 5px 10px;
       border-radius: 8px;
-      font-family: sans-serif;
       font-weight: bold;
+      display: none;
+    }
+    .bar {
+      height: 20px;
+      background: green;
+      border-radius: 5px;
+      transition: width 0.2s;
+    }
+    .healthbar-container {
+      width: 40%;
+      background: #555;
+      border-radius: 5px;
+      margin: 10px;
+    }
+    .top-bar {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+    }
+    .win-banner {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      text-align: center;
+      font-size: 48px;
+      font-weight: bold;
+      color: yellow;
       display: none;
     }
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <div class="healthbar-container"><div id="health1" class="bar"></div></div>
+    <div class="healthbar-container"><div id="health2" class="bar"></div></div>
+  </div>
+  <div id="win" class="win-banner"></div>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <div class="controls">
+    <button onclick="attack('ghedin')">ATTACCA GHEDIN</button>
+    <button onclick="attack('commissario')">ATTACCA COMMISSARIO</button>
+  </div>
   <div id="bubble" class="bubble"></div>
+  <audio id="hitSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9b88ef46d7.mp3?filename=punch-140236.mp3"></audio>
+  <audio id="music" src="https://cdn.pixabay.com/download/audio/2023/03/02/audio_d84b73c56e.mp3?filename=retro-game-music-loop-139165.mp3" autoplay loop></audio>
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const bubble = document.getElementById("bubble");
+    const health1 = document.getElementById("health1");
+    const health2 = document.getElementById("health2");
+    const win = document.getElementById("win");
+    const hitSound = document.getElementById("hitSound");
 
-    const ghedin = { x: 100, y: 300, color: "blue" };
-    const commissario = { x: 600, y: 300, color: "red" };
+    let hp1 = 100;
+    let hp2 = 100;
+
+    const ghedinImg = new Image();
+    const commissarioImg = new Image();
+    ghedinImg.src = "ghedin.png";
+    commissarioImg.src = "commissario.png";
+
+    const ghedin = { x: 100, y: 300, dx: 0 };
+    const commissario = { x: 600, y: 300, dx: 0 };
 
     function drawCharacters() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // GHEDIN
-      ctx.fillStyle = ghedin.color;
-      ctx.fillRect(ghedin.x, ghedin.y - 50, 50, 50);
-      // COMMISSARIO
-      ctx.fillStyle = commissario.color;
-      ctx.fillRect(commissario.x, commissario.y - 50, 50, 50);
+      ctx.drawImage(ghedinImg, ghedin.x + ghedin.dx, ghedin.y - 80, 80, 80);
+      ctx.drawImage(commissarioImg, commissario.x - commissario.dx, commissario.y - 80, 80, 80);
     }
 
     function showBubble(text, x, y) {
@@ -58,17 +122,28 @@
     }
 
     function attack(attacker) {
+      if (hp1 <= 0 || hp2 <= 0) return;
+      hitSound.play();
       if (attacker === 'ghedin') {
-        showBubble("RE GIORGIO", ghedin.x + 10, ghedin.y - 70);
+        ghedin.dx = 10;
+        showBubble("RE GIORGIO", ghedin.x + 20, ghedin.y - 100);
+        hp2 = Math.max(0, hp2 - 10);
       } else {
-        showBubble("CHIEDI SCUSA A PAOLO", commissario.x - 10, commissario.y - 70);
+        commissario.dx = 10;
+        showBubble("CHIEDI SCUSA A PAOLO", commissario.x - 80, commissario.y - 100);
+        hp1 = Math.max(0, hp1 - 10);
       }
+      updateHealth();
+      setTimeout(() => { ghedin.dx = 0; commissario.dx = 0; }, 200);
     }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "a") attack("ghedin");
-      if (e.key === "l") attack("commissario");
-    });
+    function updateHealth() {
+      health1.style.width = hp1 + "%";
+      health2.style.width = hp2 + "%";
+      if (hp1 === 0) win.innerText = "COMMISSARIO VINCE!";
+      if (hp2 === 0) win.innerText = "GHEDIN VINCE!";
+      if (hp1 === 0 || hp2 === 0) win.style.display = "block";
+    }
 
     function gameLoop() {
       drawCharacters();
