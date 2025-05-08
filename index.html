@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commissario Fighter</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/San_Siro_2019.jpg/640px-San_Siro_2019.jpg') no-repeat center center;
+      background-size: cover;
+    }
+    .bubble {
+      position: absolute;
+      background: white;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <div id="bubble" class="bubble"></div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const bubble = document.getElementById("bubble");
+
+    const ghedin = { x: 100, y: 300, color: "blue" };
+    const commissario = { x: 600, y: 300, color: "red" };
+
+    function drawCharacters() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // GHEDIN
+      ctx.fillStyle = ghedin.color;
+      ctx.fillRect(ghedin.x, ghedin.y - 50, 50, 50);
+      // COMMISSARIO
+      ctx.fillStyle = commissario.color;
+      ctx.fillRect(commissario.x, commissario.y - 50, 50, 50);
+    }
+
+    function showBubble(text, x, y) {
+      bubble.innerText = text;
+      bubble.style.left = x + 'px';
+      bubble.style.top = y + 'px';
+      bubble.style.display = 'block';
+      setTimeout(() => (bubble.style.display = 'none'), 1000);
+    }
+
+    function attack(attacker) {
+      if (attacker === 'ghedin') {
+        showBubble("RE GIORGIO", ghedin.x + 10, ghedin.y - 70);
+      } else {
+        showBubble("CHIEDI SCUSA A PAOLO", commissario.x - 10, commissario.y - 70);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "a") attack("ghedin");
+      if (e.key === "l") attack("commissario");
+    });
+
+    function gameLoop() {
+      drawCharacters();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
